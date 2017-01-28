@@ -11,8 +11,8 @@ class Agent(object):
     def __init__(self, initial_pos, limit_pos, valid_moves):
         self._pos = np.array(initial_pos, dtype=np.float)
         self._dpos = None
-        self._last_pos = None
-        self._last_dpos = None
+        self._last_pos = collections.deque([])
+        self._last_dpos = collections.deque([])
         self._limit_pos = limit_pos
         self._valid_moves = valid_moves
         self._values = collections.defaultdict(lambda: collections.defaultdict(float))
@@ -21,7 +21,12 @@ class Agent(object):
         self._total_reward = 0.
         self._lambda_soft_max = 5.
 
+    def _clear_history(self):
+        self._last_pos.clear()
+        self._last_dpos.clear()
+
     def set_pos(self, pos):
+        self._clear_history()
         self._pos = pos
 
     def get_pos(self):
@@ -32,8 +37,9 @@ class Agent(object):
 
         new_pos = self._pos + dpos
         if np.all(new_pos >= 0.) and np.all(new_pos < self._limit_pos):
-            self._last_dpos = dpos
-            self._last_pos = self._pos.copy()
+            self._last_dpos.appendleft(dpos.copy())
+            self._last_pos.appendleft(self._pos.copy())
+
             self._pos = new_pos
         else:
             raise ValueError('Invalid move.')
@@ -46,19 +52,20 @@ class Agent(object):
         self.move(self._dpos)
 
     def _update_values(self, reward):
-        """updates predictions based on reward and previous state"""
-        if self._last_pos is not None and self._dpos is not None:
-            V_t = self._values[tuple(self._last_pos)][tuple(self._last_dpos)]
-            V_tp = self._gamma * self._values[tuple(self._pos)][tuple(self._dpos)]
-            dV = self._alpha * (reward + V_tp - V_t)
-            self._values[tuple(self._last_pos)][tuple(self._last_dpos)] += dV
+        """updates predictions based on reward and previous state via Q-learning"""
+        if self._last_pos and self._last_dpos and self._dpos is not None:
+            lpos = self._last_pos[0]
+            ldpos = self._last_dpos[0]
+
+            V_t = self._values[tuple(self._last_pos[0])][tuple(self._last_dpos[0])]
+            V_tp = np.max(list(self._values[tuple(self._pos)].values()))
+            dV = self._alpha * (reward + self._gamma * V_tp - V_t)
+
+            self._values[tuple(lpos)][tuple(ldpos)] += dV
 
     def _select_action(self):
         """selects the next move based on current predictions"""
         valid_moves = self._currently_valid_moves()
-
-        if self._last_pos is None:
-            valid_moves[np.random.choice(np.arange(len(valid_moves)))]
 
         rewards = np.zeros(len(valid_moves))
 
