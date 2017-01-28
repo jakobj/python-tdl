@@ -66,7 +66,8 @@ class Agent(object):
             rewards[i] = self._values[tuple(self._pos)][tuple(move)]
 
         # convert reward to probabilities via softmax
-        p_rewards = np.exp(self._lambda_soft_max * rewards) / np.sum(np.exp(self._lambda_soft_max * rewards))
+        p_rewards = self._softmax(rewards)
+
         return valid_moves[np.random.choice(np.arange(len(valid_moves)), p=p_rewards)]
 
     def _currently_valid_moves(self):
@@ -76,3 +77,7 @@ class Agent(object):
             if np.all(self._pos + move >= 0.) and np.all(self._pos + move < self._limit_pos):
                 valid_moves.append(move)
         return valid_moves
+
+    def _softmax(self, x):
+        max_x = np.max(x)  # substract maximum to avoid exp overflow
+        return np.exp(self._lambda_soft_max * (x - max_x)) / np.sum(np.exp(self._lambda_soft_max * (x - max_x)))
