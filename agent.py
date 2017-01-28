@@ -8,18 +8,20 @@ class Agent(object):
     """An agent that produce moves in an arbitrary environment and learns
     from reward."""
 
-    def __init__(self, initial_pos, limit_pos, valid_moves):
+    def __init__(self, initial_pos, limit_pos, possible_moves):
         self._pos = np.array(initial_pos, dtype=np.float)
         self._dpos = None
         self._last_pos = collections.deque([])
         self._last_dpos = collections.deque([])
         self._limit_pos = limit_pos
-        self._valid_moves = valid_moves
+        self._possible_moves = possible_moves
         self._values = collections.defaultdict(lambda: collections.defaultdict(float))
         self._gamma = 0.8
         self._alpha = 1.
         self._total_reward = 0.
         self._lambda_soft_max = 5.
+
+        self._agent_ln = None  # reference to line object for plotting position
 
     def _clear_history(self):
         """clears lists of all past states and actions"""
@@ -88,7 +90,7 @@ class Agent(object):
     def _currently_valid_moves(self):
         """returns valid moves based on current position"""
         valid_moves = []
-        for move in self._valid_moves:
+        for move in self._possible_moves:
             if np.all(self._pos + move >= 0.) and np.all(self._pos + move < self._limit_pos):
                 valid_moves.append(move)
         return valid_moves
@@ -96,3 +98,18 @@ class Agent(object):
     def _softmax(self, x):
         max_x = np.max(x)  # substract maximum to avoid exp overflow
         return np.exp(self._lambda_soft_max * (x - max_x)) / np.sum(np.exp(self._lambda_soft_max * (x - max_x)))
+
+
+    def plot(self, ax):
+        pos = self._pos[::-1] + 0.5
+        if self._agent_ln is None:
+            self._agent_ln, = ax.plot(pos, ls='', marker='o', color='r', markersize=20)
+        else:
+            self._agent_ln.set_data(pos)
+
+    def plot_value(self, ax):
+        ax.cla()
+        for pos in self._values:
+            for dpos in self._possible_moves:
+                val = np.round(self._values[pos][tuple(dpos)], 2)
+                ax.text(pos[1] + 0.5 + 0.15 * dpos[1], pos[0] + 0.5 + 0.15 * dpos[0], val, ha='center', va='center', fontsize=15)

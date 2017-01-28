@@ -14,8 +14,6 @@ class Universe(object):
         if environment_type == 'grid_world':
             self._env = environment.GridWorld(*args, **kwargs)
             self.create_new_gridworld_agent()
-            self._agent_ln = None
-            self._value_ln = None
         else:
             raise NotImplementedError('Unknown environment type.')
 
@@ -35,13 +33,6 @@ class Universe(object):
         """sets reward for all positions to zero"""
         self._env.reset()
 
-    def show(self):
-        """prints the current status of the universe including agent"""
-        uni = self._env.get_text_view()
-        uni[tuple(self._agent.get_pos())] = 'x'
-        print(uni)
-        print()
-
     def step(self):
         """evolves universe for a single time step"""
         reward = self._env.get_reward(self._agent.get_pos())
@@ -58,3 +49,25 @@ class Universe(object):
         """reset universe. resets agent and rewards."""
         self.reset_agent_position()
         self.reset_environment()
+
+    def total_agent_reward(self):
+        """returns total reward gathered by agent"""
+        return self._agent._total_reward
+
+    def plot_agent(self, ax):
+        """plots the current position of the agent to the given axis"""
+        self._agent.plot(ax)
+
+    def plot_env(self, ax):
+        self._env.plot(ax)
+
+    def plot_value(self, ax):
+        self._agent.plot_value(ax)
+
+    def show(self):
+        """prints the current status of the universe including agent"""
+        uni = self._env.get_text_view()
+        uni[tuple(self._agent.get_pos())] = 'x'
+        print(uni)
+        print()
+
