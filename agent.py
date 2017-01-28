@@ -22,15 +22,23 @@ class Agent(object):
         self._lambda_soft_max = 5.
 
     def _clear_history(self):
+        """clears lists of all past states and actions"""
         self._last_pos.clear()
         self._last_dpos.clear()
 
     def set_pos(self, pos):
+        """sets the agent to a certain position"""
         self._clear_history()
         self._pos = pos
+        self._dpos = None
 
     def get_pos(self):
+        """returns the position of the agent"""
         return np.array(self._pos, dtype=np.int)
+
+    def reset_reward(self):
+        """resets the collected reward to zero"""
+        self._total_reward = 0.
 
     def move(self, dpos):
         """updates the position of the agent to positions + dpos"""
