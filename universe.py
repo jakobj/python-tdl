@@ -13,14 +13,23 @@ class Universe(object):
     def __init__(self, environment_type, *args, **kwargs):
         if environment_type == 'grid_world':
             self._env = environment.GridWorld(*args, **kwargs)
-            self._agent_initial_pos = np.zeros(len(kwargs['shape']))
-            self._agent = agent.Agent(self._agent_initial_pos, kwargs['shape'], self._possible_moves_gridworld(kwargs['shape']))
+            self.create_new_gridworld_agent()
+            self._agent_ln = None
+            self._value_ln = None
         else:
             raise NotImplementedError('Unknown environment type.')
 
-    def reset_agent(self):
+    def create_new_gridworld_agent(self):
+        """creates a new agent for a gridworld"""
+        self._agent = agent.Agent(self._env.initial_position(), self._env.shape(), self._env.possible_moves())
+
+    def reset_agent_position(self):
         """resets agent to its initial position"""
-        self._agent.set_pos(self._agent_initial_pos)
+        self._agent.set_pos(self._env.initial_position())
+
+    def reset_agent_reward(self):
+        """resets agents reward"""
+        self._agent.reset_reward()
 
     def reset_environment(self):
         """sets reward for all positions to zero"""
@@ -38,19 +47,14 @@ class Universe(object):
         reward = self._env.get_reward(self._agent.get_pos())
         self._agent.step(reward)
         if abs(reward) > 1e-12:  # reset agent upon receiving a reward
-            self.reset_agent()
+            self.reset_agent_position()
 
     def set_reward(self, pos, reward):
         """set reward for the specified position. reward can be positive
         ("reward") or negative ("punishment")"""
         self._env.set_reward(pos, reward)
 
-    def _possible_moves_gridworld(self, shape):
-        """returns all possible moves in a gridworld, excluding diagonal moves"""
-        possible_moves = [m for m in itertools.product([-1., 0., 1.], repeat=len(shape)) if np.dot(m, m) < 2]
-        return np.array(possible_moves, dtype=np.float)
-
     def reset(self):
         """reset universe. resets agent and rewards."""
-        self.reset_agent()
+        self.reset_agent_position()
         self.reset_environment()
