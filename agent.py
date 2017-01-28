@@ -41,8 +41,8 @@ class Agent(object):
     def step(self, reward):
         """evaluate reward from previous move and perform a new move"""
         self._total_reward += reward
-        self._update_values(reward)
         self._dpos = self._select_action()
+        self._update_values(reward)
         self.move(self._dpos)
 
     def _update_values(self, reward):
