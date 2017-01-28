@@ -7,3 +7,4 @@ Resources:
 - http://www.ausy.informatik.tu-darmstadt.de/uploads/Teaching/AutonomousLearningSystems/Kunz_ALS_2013.pdf
 - http://www.hunch.net/~jl/projects/RL/RLTheoryTutorial.pdf
 - http://www.scholarpedia.org/article/Temporal_difference_learning
+- http://www0.cs.ucl.ac.uk/staff/d.silver/web/Teaching_files/intro_RL.pdf
