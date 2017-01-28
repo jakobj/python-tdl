@@ -16,10 +16,10 @@ class Agent(object):
         self._limit_pos = limit_pos
         self._valid_moves = valid_moves
         self._values = collections.defaultdict(lambda: collections.defaultdict(float))
-        self._gamma = 0.1
-        self._alpha = 0.25
+        self._gamma = 0.8
+        self._alpha = 1.
         self._total_reward = 0.
-        self._lambda_soft_max = 10.
+        self._lambda_soft_max = 5.
 
     def set_pos(self, pos):
         self._pos = pos
