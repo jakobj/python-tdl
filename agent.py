@@ -17,11 +17,15 @@ class Agent(object):
         self._possible_moves = possible_moves
         self._values = collections.defaultdict(lambda: collections.defaultdict(float))
         self._gamma = 0.8
-        self._alpha = 1.
+        self._alpha = .25
         self._total_reward = 0.
-        self._lambda_soft_max = 5.
+        self._lambda_soft_max = 0.
+        self._stubbornness = 0.05
 
         self._agent_ln = None  # reference to line object for plotting position
+
+        # extensions
+        self._adaptive_lambda_softmax = True
 
     def _clear_history(self):
         """clears lists of all past states and actions"""
@@ -73,6 +77,11 @@ class Agent(object):
 
             self._values[tuple(lpos)][tuple(ldpos)] += dV
 
+            if self._adaptive_lambda_softmax:
+                # update exploration/exploitation behviour according to
+                # change of value, i.e., surprise
+                self._update_lambda_softmax(dV)
+
     def _select_action(self):
         """selects the next move based on current predictions"""
         valid_moves = self._currently_valid_moves()
@@ -113,3 +122,8 @@ class Agent(object):
             for dpos in self._possible_moves:
                 val = np.round(self._values[pos][tuple(dpos)], 2)
                 ax.text(pos[1] + 0.5 + 0.15 * dpos[1], pos[0] + 0.5 + 0.15 * dpos[0], val, ha='center', va='center', fontsize=15)
+
+    def _update_lambda_softmax(self, dV):
+        """updates the scaling factor in softmax balancing the amount of sub-optimal moves"""
+        self._lambda_soft_max += (0.5 - 1. / (1. + np.exp(-(abs(dV) - self._stubbornness))))
+        self._lambda_soft_max = np.max([0., self._lambda_soft_max])
