@@ -5,8 +5,8 @@ import numpy as np
 
 
 class Agent(object):
-    """An agent that produce moves in an arbitrary environment and learns
-    from reward."""
+    """An agent that produce moves in an arbitrary discrete environment
+    and learns from reward."""
 
     def __init__(self, initial_pos, limit_pos, possible_moves):
         self._initial_pos = initial_pos
@@ -20,8 +20,9 @@ class Agent(object):
         self._gamma = 0.8
         self._alpha = .25
         self._total_reward = 0.
-        self._lambda_soft_max = 0.
-        self._stubbornness = 0.05
+        self._lambda_softmax = 0.5
+        self._max_lambda_softmax = 50.
+        self._stubbornness = 0.1
 
         self._agent_ln = None  # reference to line object for plotting position
 
@@ -110,8 +111,7 @@ class Agent(object):
 
     def _softmax(self, x):
         max_x = np.max(x)  # substract maximum to avoid exp overflow
-        return np.exp(self._lambda_soft_max * (x - max_x)) / np.sum(np.exp(self._lambda_soft_max * (x - max_x)))
-
+        return np.exp(self._lambda_softmax * (x - max_x)) / np.sum(np.exp(self._lambda_softmax * (x - max_x)))
 
     def plot(self, ax):
         pos = self._pos[::-1] + 0.5
@@ -129,5 +129,8 @@ class Agent(object):
 
     def _update_lambda_softmax(self, dV):
         """updates the scaling factor in softmax balancing the amount of sub-optimal moves"""
-        self._lambda_soft_max += (0.5 - 1. / (1. + np.exp(-(abs(dV) - self._stubbornness))))
-        self._lambda_soft_max = np.max([0., self._lambda_soft_max])
+        self._lambda_softmax += (0.5 - 1. / (1. + np.exp(-(abs(dV) - self._stubbornness))))
+
+        # out of bounds checks
+        self._lambda_softmax = np.max([0., self._lambda_softmax])
+        self._lambda_softmax = np.min([self._max_lambda_softmax, self._lambda_softmax])
