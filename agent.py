@@ -10,7 +10,6 @@ class Agent(object):
 
     def __init__(self, initial_pos, limit_pos, possible_moves):
         self._pos = np.array(initial_pos, dtype=np.float)
-        self._dpos = None
         self._last_pos = collections.deque([])
         self._last_dpos = collections.deque([])
         self._limit_pos = limit_pos
@@ -37,7 +36,6 @@ class Agent(object):
         """sets the agent to a certain position"""
         self._clear_history()
         self._pos = pos
-        self._dpos = None
 
     def get_pos(self):
         """returns the position of the agent"""
@@ -58,17 +56,18 @@ class Agent(object):
     def step(self, reward):
         """evaluate reward from previous move and perform a new move"""
         self._total_reward += reward
-        self._dpos = self._select_action()
+        dpos = self._select_action()
         self._update_values(reward)
-        self.move(self._dpos)
+        self.move(dpos)
+        return dpos
 
     def _update_values(self, reward):
         """updates predictions based on reward and previous state via Q-learning"""
-        if self._last_pos and self._last_dpos and self._dpos is not None:
+        if self._last_pos and self._last_dpos:
             lpos = self._last_pos[0]
             ldpos = self._last_dpos[0]
 
-            V_t = self._values[tuple(self._last_pos[0])][tuple(self._last_dpos[0])]
+            V_t = self._values[tuple(lpos)][tuple(ldpos)]
             V_tp = np.max(list(self._values[tuple(self._pos)].values()))
             dV = self._alpha * (reward + self._gamma * V_tp - V_t)
 
