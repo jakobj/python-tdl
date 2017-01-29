@@ -8,7 +8,7 @@ import universe
 
 
 seed = 91231
-n_trials = 5
+n_steps_pretraining = 3000
 n_steps = 3500
 
 steps_to_reward = 9
@@ -34,7 +34,12 @@ uni.plot_env(ax)
 
 np.random.seed(seed)
 
+for _ in range(n_steps_pretraining):
+    uni.step()
+
 last_reward = 0.
+uni.reset_agent_position()
+uni.reset_agent_reward()
 for _ in range(n_steps):
     uni.step()
     uni.plot_agent(ax)
