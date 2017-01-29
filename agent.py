@@ -15,6 +15,7 @@ class Agent(object):
         self._last_dpos = collections.deque([])
         self._limit_pos = limit_pos
         self._possible_moves = possible_moves
+        self._exclude_out_of_bounds_moves = True
         self._values = collections.defaultdict(lambda: collections.defaultdict(float))
         self._gamma = 0.8
         self._alpha = .25
@@ -50,13 +51,9 @@ class Agent(object):
         """updates the position of the agent to positions + dpos"""
 
         new_pos = self._pos + dpos
-        if np.all(new_pos >= 0.) and np.all(new_pos < self._limit_pos):
-            self._last_dpos.appendleft(dpos.copy())
-            self._last_pos.appendleft(self._pos.copy())
-
-            self._pos = new_pos
-        else:
-            raise ValueError('Invalid move.')
+        self._last_dpos.appendleft(dpos.copy())
+        self._last_pos.appendleft(self._pos.copy())
+        self._pos = new_pos
 
     def step(self, reward):
         """evaluate reward from previous move and perform a new move"""
@@ -98,11 +95,14 @@ class Agent(object):
 
     def _currently_valid_moves(self):
         """returns valid moves based on current position"""
-        valid_moves = []
-        for move in self._possible_moves:
-            if np.all(self._pos + move >= 0.) and np.all(self._pos + move < self._limit_pos):
-                valid_moves.append(move)
-        return valid_moves
+        if self._exclude_out_of_bounds_moves:
+            valid_moves = []
+            for move in self._possible_moves:
+                if np.all(self._pos + move >= 0.) and np.all(self._pos + move < self._limit_pos):
+                    valid_moves.append(move)
+            return valid_moves
+        else:
+            return self._possible_moves
 
     def _softmax(self, x):
         max_x = np.max(x)  # substract maximum to avoid exp overflow
