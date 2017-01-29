@@ -9,6 +9,7 @@ class Agent(object):
     from reward."""
 
     def __init__(self, initial_pos, limit_pos, possible_moves):
+        self._initial_pos = initial_pos
         self._pos = np.array(initial_pos, dtype=np.float)
         self._last_pos = collections.deque([])
         self._last_dpos = collections.deque([])
@@ -40,6 +41,10 @@ class Agent(object):
     def get_pos(self):
         """returns the position of the agent"""
         return np.array(self._pos, dtype=np.int)
+
+    def reset_position(self):
+        """resets agent to initial position"""
+        self.set_pos(self._initial_pos)
 
     def reset_reward(self):
         """resets the collected reward to zero"""
