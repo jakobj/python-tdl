@@ -37,7 +37,7 @@ class Universe(object):
         """evolves universe for a single time step"""
         reward = self._env.get_reward(self._agent.get_pos())
         self._agent.step(reward)
-        if abs(reward) > 1e-12:  # reset agent upon receiving a reward
+        if reward > 1e-12:  # reset agent upon receiving a reward
             self.reset_agent_position()
 
     def set_reward(self, pos, reward):
